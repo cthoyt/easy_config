@@ -5,7 +5,7 @@
 import dataclasses
 import logging
 from datetime import date, datetime
-from typing import Dict, List, Type
+from typing import Any, Callable, Dict, List, Type
 
 import wtforms
 from wtforms import (
@@ -14,7 +14,6 @@ from wtforms import (
 from wtforms.validators import DataRequired, InputRequired
 
 from easy_config import EasyConfig
-
 
 __all__ = [
     'form_from_config',
@@ -36,7 +35,7 @@ def form_from_config(cls: Type[EasyConfig], base: Type[Form] = Form) -> Type[For
 class WtFormsProcessor:
     """Process a dataclass."""
 
-    def __init__(self, dataclass: dataclasses.dataclass) -> None:  # noqa: D107
+    def __init__(self, dataclass: Type[EasyConfig]) -> None:  # noqa: D107
         self.dataclass = dataclass
 
         #: A conversion dictionary from Python types used in the dataclass to WTForms field types that can be amended
@@ -67,24 +66,26 @@ class WtFormsProcessor:
 
         return type(f'{self.dataclass.NAME}Form', (base,), attrs)  # type: ignore
 
-    def process_simple_field(self, dataclass_field: dataclasses.Field) -> wtforms.Field:
+    def process_simple_field(self, field: dataclasses.Field) -> wtforms.Field:
         """Generate a :py:class`wtforms.Field` from a :py:class:`dataclass.Field`."""
-        form_field_cls: wtforms.Field = self.type_to_field[dataclass_field.type]
+        form_field_cls: wtforms.Field = self.type_to_field[field.type]
 
-        if dataclass_field.default is not dataclasses.MISSING:
-            default = dataclass_field.default
-        elif dataclass_field.type is bool:  # default for boolean is automatically false
+        default: Any
+        if field.default is not dataclasses.MISSING:
+            default = field.default
+        elif field.type is bool:  # default for boolean is automatically false
             default = False
         else:
             default = None
 
-        if dataclass_field.type is bool:
+        validators: List[Callable[[wtforms.Form, wtforms.Field], bool]]
+        if field.type is bool:
             validators = []
         else:
             validators = [DataRequired()]
 
         form_field = form_field_cls(
-            label=dataclass_field.name.replace('_', ' ').capitalize(),
+            label=field.name.replace('_', ' ').capitalize(),
             validators=validators,
             default=default,
         )
