@@ -53,8 +53,9 @@ def test_with_default():  # noqa: D202
     with app.app_context():
         form = form_cls()
         fields = list(form)
-        assert 4 == len(fields) - 1  # because of submit button
-        assert str(fields[0]) == '<input id="number" name="number" required type="text" value="">'
-        assert str(fields[1]) == '<input id="bool_1" name="bool_1" required type="checkbox" value="n">'
-        assert str(fields[2]) == '<input id="bool_2" name="bool_2" required type="checkbox" value="n">'
-        assert str(fields[3]) == '<input id="bool_3" name="bool_3" required type="checkbox" value="y">'
+        assert len(dataclasses.fields(ExampleConfig)) + 1 == len(fields)  # add one because of submit button
+        assert '<input id="number" name="number" required type="text" value="">' == str(fields[0])
+        assert '<input id="bool_1" name="bool_1" type="checkbox" value="n">' == str(fields[1])
+        assert '<input id="bool_2" name="bool_2" type="checkbox" value="n">' == str(fields[2])
+        assert '<input id="bool_3" name="bool_3" type="checkbox" value="y">' == str(fields[3])
+        assert '<input type="submit">' == str(fields[4])

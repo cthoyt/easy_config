@@ -51,7 +51,7 @@ def home():
         f'<td>{getattr(form, field).data}</td>'
         f'</tr>'
         for field in form._fields
-    ) + '/<table>'
+    ) + '</table>'
 
 
 if __name__ == '__main__':
